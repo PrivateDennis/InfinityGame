@@ -1,0 +1,22 @@
+{
+  "name": "decodo/infinity_game",
+  "config": {
+    "platform": {
+      "php": "8.2"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "infinityGame\\": "infinityGame/"
+    },
+    "classmap": [
+      "infinityGame/"
+    ]
+  },
+  "require": {
+    "twbs/bootstrap": "^5.3",
+    "components/jquery": "^1.12.4",
+    "phpfastcache/phpfastcache": "^9.2",
+    "fortawesome/font-awesome": "^6.5"
+  }
+}
