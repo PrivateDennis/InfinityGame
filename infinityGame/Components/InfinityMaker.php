@@ -10,7 +10,10 @@ class InfinityMaker
     public static array $trace = [];
 
     public static array $errors = [];
+
+    public static bool $isNewItem = false;
     public static $clientLastResponse;
+    public static bool $doesExist;
 
     public function getNewTerm(array $terms, $bypassCache = false, $reminder = false)
     {
@@ -26,13 +29,14 @@ class InfinityMaker
         $cacheModel = new CacheModel();
         $cacheItem = $cacheModel->get('terms-' . implode('-', $terms));
 
-        $createdNew = false;
-        $doesExist = $cacheItem->isHit();
+        self::$isNewItem = false;
 
-        self::$trace[] = 'doesExist: ' . ($doesExist ? 'Yes' : 'NO');
+        self::$doesExist = $cacheItem->isHit();
+
+        self::$trace[] = 'doesExist: ' . (self::$doesExist ? 'Yes' : 'NO');
         self::$trace[] = 'bypassCache: ' . ($bypassCache ? 'Yes' : 'NO');
 
-        if (!$doesExist && $bypassCache === false) {
+        if (!self::$doesExist && $bypassCache === false) {
             $cacheItem = $cacheModel->get('terms-' . implode('-', array_reverse($terms)));
             $doesExist = $cacheItem->isHit();
         }
@@ -54,94 +58,22 @@ class InfinityMaker
                 $response = 'Universe';
                 self::$errors[] = $e->getMessage();
             }
-
-//            try {
-//                $client = new Client();
-//                if (isset($lastResponse['context'])) {
-//                    $client->setContext($lastResponse['context']);
-//                }
-//
-//                $origAnswerEmoji = trim($client->generate('Find the closest matching emoji to ' . $response . '. Only answer with one single emoji'));
-//                $response .= ' ' . $origAnswerEmoji;
-//            } catch (\Exception $e) {
-//                $response .= '🌌';
-//                $errors[] = $e->getMessage();
-//            }
-//
-            $cacheItem = $cacheModel->write($response, CacheModel::toDate('1 years'));
-//
-            $reverseCacheModel = new CacheModel();
-            $cacheItemReverse = $reverseCacheModel->get('terms-' . implode('-', array_reverse($terms)));
-            $cacheItemReverse = $reverseCacheModel->write($response, CacheModel::toDate('1 years'));
-
-            $createdNew = true;
-
-            $logFile = _LOG_DIR . '/creation_' . date('Y') . '.log';
-            $logData = "[" . date('Y-m-d H:i:s') . "]\t" . ($bypassCache !== false ? "recreated: " : "created: ") . $response . " from " . $terms[0] . " + " . $terms[1] . "\n";
-
-            file_put_contents($logFile, $logData, FILE_APPEND);
-        }
-
-        self::$trace[] = 'createdNew: ' . ($createdNew ? 'Yes' : 'NO');
-
-        return $cacheItem->get();
-    }
-
-    public function depricatedRemindAgain(array $terms, $bypassCache = false)
-    {
-        $prompt = 'only one word please!';
-
-        self::$trace[] = 'Prompt: ' . $prompt;
-
-        $cacheModel = new CacheModel();
-        $cacheItem = $cacheModel->get('terms-' . implode('-', $terms));
-
-        $createdNew = false;
-        $doesExist = $cacheItem->isHit();
-
-        self::$trace[] = 'doesExist: ' . ($doesExist ? 'Yes' : 'NO');
-        self::$trace[] = 'bypassCache: ' . ($bypassCache ? 'Yes' : 'NO');
-
-        if (!$doesExist && $bypassCache === false) {
-            $cacheItem = $cacheModel->get('terms-' . implode('-', array_reverse($terms)));
-            $doesExist = $cacheItem->isHit();
-        }
-
-        if (!$doesExist || $bypassCache !== false) {
-
-            $client = new Client();
-
-            if (!empty(self::$clientLastResponse) && isset(self::$clientLastResponse['context'])) {
-                $client::$context = self::$clientLastResponse['context'];
-                self::$trace[] = 'setting context total: ' . count(self::$clientLastResponse['context']);
-            }
-
-            try {
-                $response = ucfirst(trim($client->generate($prompt)));
-                self::$trace[] = 'response: ' . $response;
-                self::$clientLastResponse = Client::$lastResponse;
-
-            } catch (\Exception $e) {
-                $response = 'Universe';
-                self::$errors[] = $e->getMessage();
-            }
-
             $cacheItem = $cacheModel->write($response, CacheModel::toDate('1 years'));
 
             $reverseCacheModel = new CacheModel();
             $cacheItemReverse = $reverseCacheModel->get('terms-' . implode('-', array_reverse($terms)));
             $cacheItemReverse = $reverseCacheModel->write($response, CacheModel::toDate('1 years'));
 
-            $createdNew = true;
+            self::$isNewItem = true;
 
             $logFile = _LOG_DIR . '/creation_' . date('Y') . '.log';
-            $logData = "[" . date('Y-m-d H:i:s') . "]\t" . ($bypassCache !== false ? "recreated: " : "created: ") . $response . " from " . $terms[0] . " + " . $terms[1] . "\n";
+            $logData = "[" . date('Y-m-d H:i:s') . "]\t" .
+                ($bypassCache !== false ? "recreated: " : "created: ") . $response . " from " . $terms[0] . " + " . $terms[1] . "\n";
 
             file_put_contents($logFile, $logData, FILE_APPEND);
         }
 
-        self::$trace[] = 'createdNew: ' . ($createdNew ? 'Yes' : 'NO');
-
+        self::$trace[] = 'createdNew: ' . (self::$isNewItem ? 'Yes' : 'NO');
         return $cacheItem->get();
     }
 
@@ -196,13 +128,17 @@ class InfinityMaker
     /**
      * @param array $terms
      * @param bool $bypassCache
-     * @return array
+     * @return mixed
      */
     public function resolve(array $terms, bool $bypassCache = false): array
     {
+        self::$doesExist = false;
         $term = $this->getNewTerm($terms, $bypassCache);
         $parts = explode(' ', $term);
-        if (count($parts) > 1) {
+
+        $isNew = !self::$doesExist;
+
+        if (count($parts) > 2) {
             self::$trace[] = 'multipart answer: ' . $term;
 
             $term = $this->getNewTerm($terms, $bypassCache = false, $remind = true);
@@ -213,7 +149,6 @@ class InfinityMaker
                 self::$errors[] = 'AI cant follow my rules. Too, bad!';
                 return false;
             }
-//            $term = $this->remindAgain($terms, true);
         }
 
         $emoji = $this->getEmoji($term, $bypassCache);
@@ -222,7 +157,8 @@ class InfinityMaker
             'terms' => $terms,
             'response' => ucfirst($term),
             'icon' => $emoji,
-            'trace' => self::$trace,
+            'new' => $isNew,
+//            'trace' => self::$trace,
             'errors' => self::$errors,
         ];
     }

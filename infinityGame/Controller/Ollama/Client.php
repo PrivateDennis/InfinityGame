@@ -6,9 +6,10 @@ use Exception;
 
 class Client
 {
-    public static string $endpoint = 'http://127.0.0.1:11434';
-    public static string $path = '/api';
-    public static string $model = 'openchat:latest';
+    public static string $endpoint = IG_ENDPOINT;
+    public static string $path = IG_PATH;
+    public static string $model = IG_LANGUAGE_MODEL;
+
     public static bool $stream = false;
     public static string $lastPrompt;
     public static array $data = [];
@@ -28,8 +29,11 @@ class Client
 
     public function setOptions(array $options): void
     {
-        if (isset($options['path'])) {
-            self::$path = $options['path'];
+        if (isset($options['endpoint'])) {
+            self::$path = $options['endpoint'];
+        }
+        if (isset($options['model'])) {
+            self::$path = $options['model'];
         }
         if (isset($options['model'])) {
             self::$path = $options['model'];
@@ -59,6 +63,40 @@ class Client
         return self::$uri;
     }
 
+    public function isAlive()
+    {
+        $endpoint = self::getUri('/generate');
+
+        self::$data = [
+            "model" => self::getModel(),
+            "stream" => self::$stream,
+        ];
+
+        $this->send($endpoint);
+
+        if(self::$lastResponse){
+            $response = json_decode(self::$lastResponse,1);
+            if(isset($response['done'])){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function send($endpoint)
+    {
+        $curl = curl_init($endpoint);
+
+        curl_setopt($curl, CURLOPT_POST, 1); // Set the request method to POST
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(self::$data)); // Set the request data
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
+
+        self::$lastResponse = curl_exec($curl);
+
+        curl_close($curl);
+    }
+
     /**
      * @throws Exception
      */
@@ -82,15 +120,7 @@ class Client
             self::$data['context'] = $context;
         }
 
-        $curl = curl_init($endpoint);
-
-        curl_setopt($curl, CURLOPT_POST, 1); // Set the request method to POST
-        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(self::$data)); // Set the request data
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
-
-        self::$lastResponse = curl_exec($curl);
-
-        curl_close($curl);
+       $this->send($endpoint);
 
         $logFile = _LOG_DIR . '/history_' . date('Y-m-d') . '.log';
         $logData = "[" . date('Y-m-d H:i:s') . "]\tPrompt:" . self::$lastPrompt . "\n" .

@@ -1,5 +1,7 @@
 {
   "name": "decodo/infinity_game",
+  "Description": "Craft infinite items with help of ollama or any other language model.",
+  "Author": "Dennis Decker <dx.decker@gmail.com>",
   "config": {
     "platform": {
       "php": "8.2"
@@ -17,6 +19,7 @@
     "twbs/bootstrap": "^5.3",
     "components/jquery": "^1.12.4",
     "phpfastcache/phpfastcache": "^9.2",
-    "fortawesome/font-awesome": "^6.5"
+    "fortawesome/font-awesome": "^6.5",
+    "vlucas/phpdotenv": "^5.6"
   }
 }

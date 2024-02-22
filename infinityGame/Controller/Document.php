@@ -51,9 +51,12 @@ class Document
 
     public function send()
     {
+        $credits = $_ENV['APP_NAME'] . ' ' . $_ENV['APP_VERSION'] . ' (c) ' . date('Y') . ' Dennis Decker';
         $template = file_get_contents(__DIR__ . '/../Template/template.html');
         $html = str_replace('<!--[title]-->', self::$title, $template);
         $html = str_replace('<!--[content]-->', self::$content, $html);
+        $html = str_replace('<!--[credits]-->', $credits, $html);
+
 
         ob_end_clean();
         die($html);

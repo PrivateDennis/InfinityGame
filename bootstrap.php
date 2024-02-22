@@ -21,10 +21,10 @@ if (!defined('_CACHE_PATH')) {
 
 if(!is_dir(_VAR_DIR)){
     mkdir(_VAR_DIR);
-    if(!is_dir(_LOG_DIR)){
-        mkdir(_LOG_DIR);
-    }
-    if(!is_dir(_CACHE_PATH)){
-        mkdir(_CACHE_PATH);
-    }
+}
+if(!is_dir(_LOG_DIR)){
+    mkdir(_LOG_DIR);
+}
+if(!is_dir(_CACHE_PATH)){
+    mkdir(_CACHE_PATH);
 }
