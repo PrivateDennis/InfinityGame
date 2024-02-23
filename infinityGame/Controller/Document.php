@@ -38,9 +38,17 @@ class Document
             $className = 'debug-container-fluid';
         }
 
-        return '<div class="' . $className . '" style="z-index: 99999;">' .
-            '<a data-toggle="collapse" href="#collapseDebugContainer" aria-expanded="false" aria-controls="collapseDebugContainer">' .
-            '<i class="fe fe-cpu fe-24"></i>' .
+        return '<style>
+        .debug-container-fluid {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 15px;
+            max-width: 1200px;
+        }
+        </style><div class="' . $className . '" style="z-index: 99999;">' .
+            '<a data-bs-toggle="collapse" href="#collapseDebugContainer" aria-expanded="false" aria-controls="collapseDebugContainer">' .
+            '<i class="fa-solid fa-bug"></i>' .
             '</a>' .
             '<div class="collapse" id="collapseDebugContainer" ><hr/><div class="card card-body">' .
             '<pre style="max-width: 80vh;height: 80vh; overflow: auto; text-align: left">' .

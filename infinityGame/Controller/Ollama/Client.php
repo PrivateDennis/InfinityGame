@@ -74,9 +74,9 @@ class Client
 
         $this->send($endpoint);
 
-        if(self::$lastResponse){
-            $response = json_decode(self::$lastResponse,1);
-            if(isset($response['done'])){
+        if (self::$lastResponse) {
+            $response = json_decode(self::$lastResponse, 1);
+            if (isset($response['done'])) {
                 return true;
             }
         }
@@ -96,6 +96,7 @@ class Client
 
         curl_close($curl);
     }
+
 
     /**
      * @throws Exception
@@ -120,9 +121,9 @@ class Client
             self::$data['context'] = $context;
         }
 
-       $this->send($endpoint);
+        $this->send($endpoint);
 
-        $logFile = _LOG_DIR . '/history_' . date('Y-m-d') . '.log';
+        $logFile = _LOG_DIR . DS . 'history_' . date('Y-m-d') . '.log';
         $logData = "[" . date('Y-m-d H:i:s') . "]\tPrompt:" . self::$lastPrompt . "\n" .
             "\tResponse:" . print_r(self::$lastResponse, 1) . "\n" .
             "\tData:" . print_r(self::$data, 1) . "\n" .
@@ -161,7 +162,7 @@ class Client
     public function generate($prompt): string
     {
         $response = $this->prompt($prompt);
-        if($response === false){
+        if ($response === false) {
             return false;
         }
         return $response['response'];
@@ -170,6 +171,13 @@ class Client
     public function setContext(array $context): void
     {
         self::$context = $context;
+    }
+
+
+    public static function termsToKey($terms): string
+    {
+
+        return trim(strtolower(implode('-', $terms)));
     }
 
 }
