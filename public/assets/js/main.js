@@ -15,9 +15,6 @@ const initialElements = [
 gameInit = gameInit || [];
 let termBucket = [], buttonContainer, loader, soundLib;
 
-/**
- * .append('<audio controls autoplay style="display: none;"><source src="/bs/template/assets/media/Apex.mp3" type="audio/mpeg"></audio>')
- */
 gameInit.push(() => {
     buttonContainer = $('.btn-container');
 
@@ -110,14 +107,6 @@ gameInit.push(() => {
                 denied: new Audio("https://cdn.freesound.org/previews/687/687451_14981990-lq.mp3"),
             }
 
-
-//             const audio = new Audio("https://cdn.freesound.org/previews/264/264446_4322723-lq.mp3");
-//             audio.play();
-//             console.log('audio',audio)
-//
-// let audios = $('<audio controls autoplay><source src="/chatGameGPT/public/assets/media/Apex.mp3" type="audio/mpeg"></audio>');
-//             $('body').append(audios);
-//             console.log('audio',audios)
         };
 
     $('#quickPost').on('submit', (e) => {
@@ -130,7 +119,6 @@ gameInit.push(() => {
             method: 'POST',
             data: {prompt}
         }).success((res) => {
-            console.log('res', res)
             $('#raw-response').val(res.response);
             loader.hide();
         }).fail((res) => {
